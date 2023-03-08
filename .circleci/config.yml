@@ -2,6 +2,20 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.12.1
 
+commands:
+  notify_on_failure:
+      steps:
+        - slack/notify:
+            event: fail
+            channel: $SLACK_DEFAULT_CHANNEL
+            template: basic_fail_1
+  notify_on_success:
+      steps:
+        - slack/notify:
+            event: pass
+            channel: $SLACK_DEFAULT_CHANNEL
+            template: success_tagged_deployment_1
+
 jobs:
   build-frontend:
     docker:
@@ -100,6 +114,8 @@ jobs:
       - run:
           name: alert-test
           command: exit 1
+      - notify_on_failure
+      - notify_on_success
 
 workflows:
   default:
