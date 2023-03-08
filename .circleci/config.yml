@@ -14,7 +14,7 @@ commands:
         - slack/notify:
             event: pass
             channel: $SLACK_DEFAULT_CHANNEL
-            template: success_tagged_deployment_1
+            template: success_tagged_deployment_1            
 
 jobs:
   build-frontend:
@@ -24,6 +24,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: [frontend-build]
+      - notify_on_failure
       - run:
           name: Build front-end
           command: |
@@ -41,6 +42,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
+      - notify_on_failure
       - run:
           name: Back-end build
           command: |
@@ -56,8 +58,9 @@ jobs:
       - image: cimg/node:13.8.0
     steps:
       - checkout
-      # - restore_cache:
-      #     keys: [frontend-build]
+      - notify_on_failure
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Front-End test
           command: |
@@ -70,8 +73,9 @@ jobs:
       - image: cimg/node:13.8.0
     steps:
       - checkout
-      # - restore_cache:
-      #     keys: [backend-build]
+      - notify_on_failure
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Back-End test
           command: |
@@ -84,8 +88,9 @@ jobs:
       - image: cimg/node:13.8.0
     steps:
       - checkout
-      # - restore_cache:
-      #     keys: [frontend-build]
+      - notify_on_failure
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Front-End scan
           command: |
@@ -98,8 +103,10 @@ jobs:
       - image: cimg/node:13.8.0
     steps:
       - checkout
-      # - restore_cache:
-      #     keys: [backend-build]
+      - notify_on_failure
+      - notify_on_success
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Back-End scan
           command: |
@@ -107,25 +114,16 @@ jobs:
             npm install
             npm audit fix --audit-level=critical --force
 
-  alert-test:
-    docker:
-      - image: cimg/node:13.8.0
-    steps:
-      - run:
-          name: alert-test
-          command: exit 1
-      - notify_on_failure
-      - notify_on_success
-
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend
-          # requires: [build-frontend]
-      # - test-backend
-          # requires: [build-backend]
-      # - scan-backend
-      # - scan-frontend
-      - alert-test
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
