@@ -10,7 +10,7 @@ import history from './browserHistory';
 const store = configureStore(history);
 
 ReactDOM.render(
-  <Provider store={store}>
+  <Provider store={store}?>
     <ConnectedRouter history={history}>
       <Root />
     </ConnectedRouter>
