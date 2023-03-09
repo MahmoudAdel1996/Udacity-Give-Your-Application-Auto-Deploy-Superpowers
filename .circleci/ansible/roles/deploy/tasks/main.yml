@@ -11,6 +11,12 @@
     state: latest
     update_cache: yes
 
+- name: "APT: Install aptitude package"
+  become: true
+  apt:
+    name: aptitude
+    state: latest
+
 - name: "install pm2"
   become: true
   npm:
