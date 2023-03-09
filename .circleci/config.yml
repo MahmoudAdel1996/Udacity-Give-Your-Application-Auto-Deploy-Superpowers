@@ -182,7 +182,7 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
-            apk add --update awscli
+            apk add awscli
       - run:
           name: Configure server
           command: |
