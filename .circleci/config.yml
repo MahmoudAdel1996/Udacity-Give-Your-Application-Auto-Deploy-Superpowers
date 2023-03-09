@@ -8,7 +8,7 @@ commands:
     parameters:
       Workflow_ID:
         type: string
-        default: bb08d45
+        default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
       - run:
           name: Destroy environment
@@ -23,13 +23,13 @@ commands:
     parameters:
       Workflow_ID:
         type: string
-        default: bb08d45  
+        default: bb08d45 # ${CIRCLE_WORKFLOW_ID:0:7}  
     steps:
       - run:
           name: Revert migrations
           when: on_fail
           command: |
-            export SUCCESS = $(curl --insecure  https://kvdb.io/EAfZxCeaVfwFYf8HNqDTFk/migration_<< parameters.Workflow_ID >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/EAfZxCeaVfwFYf8HNqDTFk/migration_<< parameters.Workflow_ID >>)
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -252,8 +252,8 @@ jobs:
             cd frontend
             npm install
             npm run build
-            tar -czvf artifact-bb08d45.tar.gz dist
-            aws s3 cp dist s3://udapeople-bb08d45 --recursive
+            tar -czvf artifact-${CIRCLE_WORKFLOW_ID:0:7}.tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       # - destroy-environment
       # - revert-migrations
                     
@@ -291,10 +291,12 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export API_URL="http://${BACKEND_IP}:3030"
+            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+
       - run:
           name: Backend smoke test.
           command: |
+            export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
             then
@@ -305,7 +307,7 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-bb08d45.s3-website-us-east-1.amazonaws.com/#/employees"            
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
@@ -332,15 +334,16 @@ workflows:
       #     requires: [build-backend]
       # - scan-frontend:
       #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations
-          # requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      - smoke-test
+      - deploy-infrastructure
+          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-frontend, deploy-backend]
 
