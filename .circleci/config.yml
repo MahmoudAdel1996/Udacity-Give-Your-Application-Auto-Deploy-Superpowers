@@ -171,18 +171,13 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: mahmoudadel1996/aws-node
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["c1:4d:73:d4:3e:e6:10:61:6c:98:8b:04:06:be:cf:96"]
       - attach_workspace:
           at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible
-            python -m pip install awscli
       - run:
           name: Configure server
           command: |
