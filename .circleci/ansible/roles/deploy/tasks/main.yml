@@ -12,10 +12,9 @@
     update_cache: yes
 
 - name: "APT: Install aptitude package"
-  become: true
   apt:
     name: aptitude
-    state: latest
+    force_apt_get: yes
 
 - name: "install pm2"
   become: true
