@@ -23,7 +23,7 @@ commands:
     parameters:
       Workflow_ID:
         type: string
-        default: ccf1f47 # ${CIRCLE_WORKFLOW_ID:0:7}    
+        default: ${CIRCLE_WORKFLOW_ID:0:7}    
     steps:
       - run:
           name: Revert migrations
@@ -221,15 +221,13 @@ jobs:
           command: |
             cd backend
             npm install
-            # Run and save the migration output
             npm run migrations > migrations_dump.txt
       - run:
           name: Send migration status to kvdb.io
           command: |   
               if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
               then
-                  # If you are using kvdb.io, generate the bucket ID "9GE4jRtKznmVKRfvdBABBe" in your local terminal first
-                  curl https://kvdb.io/EAfZxCeaVfwFYf8HNqDTFk/migration_ccf1f47  -d '1'
+                  curl https://kvdb.io/EAfZxCeaVfwFYf8HNqDTFk/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
               fi
       # - destroy-environment
   
@@ -248,7 +246,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances...............)
+            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -259,8 +257,8 @@ jobs:
             cd frontend
             npm install
             npm run build
-            tar -czvf artifact-ccf1f47.tar.gz dist
-            aws s3 cp dist s3://udapeople-ccf1f47 --recursive
+            tar -czvf artifact-${CIRCLE_WORKFLOW_ID:0:7}.tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
       # - destroy-environment
                     
@@ -298,21 +296,21 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      - run-migrations
-          # requires: [configure-infrastructure]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [run-migrations]
       - deploy-backend:
