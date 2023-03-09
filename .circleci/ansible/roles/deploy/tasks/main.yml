@@ -1,4 +1,10 @@
 ---
+- name: "APT: Install aptitude package"
+  become: true
+  apt:
+    name: aptitude
+    state: latest
+    
 - name: "upgrade packages."
   become: true
   apt:
@@ -11,10 +17,7 @@
     state: latest
     update_cache: yes
 
-- name: "APT: Install aptitude package"
-  apt:
-    name: aptitude
-    force_apt_get: yes
+
 
 - name: "install pm2"
   become: true
