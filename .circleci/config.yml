@@ -368,6 +368,7 @@ jobs:
     steps:
       - checkout
       - run: exit 1
+      - destroy-environment
       - revert-migrations
 workflows:
   default:
