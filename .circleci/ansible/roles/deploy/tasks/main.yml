@@ -21,6 +21,7 @@
     cd /home/ubuntu/backend/dist
     pm2 stop default
     pm2 start -f main.js --watch > log.txt
+
 - name: Enable pm2
   become: true
   shell: |
