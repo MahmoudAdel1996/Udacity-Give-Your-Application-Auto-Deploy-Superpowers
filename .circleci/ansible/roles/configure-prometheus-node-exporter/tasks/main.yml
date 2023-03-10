@@ -1,11 +1,20 @@
-- name: "download node exporter."
-  get_url:
-    url: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
-    dest: /tmpv/node_exporter-1.0.1.linux-amd64.tar.gz
+# - name: "download node exporter."
+#   become: yes
+#   get_url:
+#     url: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
+#     dest: /tmpv/node_exporter-1.0.1.linux-amd64.tar.gz
+
+# - name: "install node exporter."
+#   become: yes
+#   unarchive:
+#     src: /tmpv/node_exporter-1.0.1.linux-amd64.tar.gz
+#     dest: /tmp
+#     remote_src: yes
 
 - name: "install node exporter."
+  become: true
   unarchive:
-    src: /tmpv/node_exporter-1.0.1.linux-amd64.tar.gz
+    src: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
     dest: /tmp
     remote_src: yes
 
