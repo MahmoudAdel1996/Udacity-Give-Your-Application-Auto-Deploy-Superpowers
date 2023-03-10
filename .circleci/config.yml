@@ -229,8 +229,8 @@ jobs:
                   curl --insecure https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
               fi
 
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
   
   deploy-frontend:
     docker:
@@ -256,8 +256,8 @@ jobs:
             tar -czvf artifact-${CIRCLE_WORKFLOW_ID:0:7}.tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
                     
   deploy-backend:
     docker:
@@ -289,8 +289,8 @@ jobs:
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
 
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
 
   smoke-test:
     docker:
@@ -324,8 +324,8 @@ jobs:
             fi
 
       - notify_on_failure
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
 
   cloudfront-update:
     docker:
@@ -349,8 +349,8 @@ jobs:
               --stack-name InitialStack
   
       - notify_on_failure
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
 
   cleanup:
     docker:
@@ -374,8 +374,8 @@ jobs:
             fi
 
       - notify_on_failure
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
 
   revert-step:
     docker:
@@ -383,8 +383,8 @@ jobs:
     
     steps:
       - run: exit 1
-      - destroy-environment
       - revert-migrations
+      - destroy-environment
 
 workflows:
   default:
@@ -401,9 +401,9 @@ workflows:
           requires: [build-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          # filters:
-          #   branches:
-          #     only: [test-feature-branch]
+          filters:
+            branches:
+              only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
