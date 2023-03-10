@@ -263,7 +263,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["54:03:09:2e:fd:b3:04:d1:99:84:99:a1:fd:4a:41:06"]
+          fingerprints: ["c1:4d:73:d4:3e:e6:10:61:6c:98:8b:04:06:be:cf:96"]
       - run:
           name: Deploy backend
           command: |
