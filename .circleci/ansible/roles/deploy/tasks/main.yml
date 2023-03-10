@@ -3,7 +3,8 @@
   become: true
   apt:
     name: aptitude
-    force_apt_get: yes
+    state: latest
+    update_cache: yes
 
 - name: "upgrade packages."
   become: true
