@@ -270,7 +270,7 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
-            apk add nodejs
+            apk add --update npm
       - run:
           name: Deploy backend
           command: |
