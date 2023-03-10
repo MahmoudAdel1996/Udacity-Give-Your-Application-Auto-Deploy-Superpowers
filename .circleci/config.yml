@@ -23,7 +23,7 @@ commands:
     parameters:
       Workflow_ID:
         type: string
-        default: "6940028" # ${CIRCLE_WORKFLOW_ID:0:7}  
+        default: ${CIRCLE_WORKFLOW_ID:0:7}  
     steps:
       - run:
           name: Revert migrations
@@ -162,18 +162,18 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
-            --stack-name "udapeople-backend-cf81c46" \
-            --parameter-overrides ID="cf81c46"  \
+            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
             --tags project=udapeople
       
-      # - run:
-      #     name: Ensure front-end infrastructure exist
-      #     command: |
-      #       aws cloudformation deploy \
-      #         --template-file .circleci/files/frontend.yml \
-      #         --tags project=udapeople \
-      #         --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
       
       - run:
           name: Add back-end ip to ansible inventory
@@ -215,21 +215,19 @@ jobs:
           name: Run migrations
           command: |
             export TYPEORM_HOST=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-            export TYPEORM_PORT=5532
-            echo $TYPEORM_HOST
-            echo $TYPEORM_PORT
+            
             cd backend
             npm install
             npm run premigrations
             npm run migrations
-      # - run:
-      #     name: Send migration status to kvdb.io
-      #     command: |   
-      #         if grep -q "has been executed successfully." ~/backend/migrations_dump.txt
-      #         then
-      #             curl --insecure https://kvdb.io/EAfZxCeaVfwFYf8HNqDTFk/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
-      #         fi
-      # - destroy-environment
+      - run:
+          name: Send migration status to kvdb.io
+          command: |   
+              if grep -q "has been executed successfully." ~/backend/migrations_dump.txt
+              then
+                  curl --insecure https://kvdb.io/EAfZxCeaVfwFYf8HNqDTFk/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              fi
+      - destroy-environment
   
   deploy-frontend:
     docker:
@@ -336,7 +334,7 @@ jobs:
             aws cloudformation deploy \
             --template-file .circleci/files/cloudfront.yml \
             --stack-name InitialStack \
-            --parameter-overrides WorkflowID="udapeople-6940028" \
+            --parameter-overrides WorkflowID="udapeople-cf81c46" \
             --tags project=udapeople
 
 
@@ -397,15 +395,15 @@ workflows:
       #     #     only: [test-feature-branch]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
-      - run-migrations
+      # - run-migrations
           # requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend]
-      # - cloudfront-update:
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend]
+      - cloudfront-update
       #     requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudfront-update]
