@@ -259,29 +259,24 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: python:3.9.16-alpine3.17
+      - image: mahmoudadel1996/aws-node
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["c1:4d:73:d4:3e:e6:10:61:6c:98:8b:04:06:be:cf:96"]
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible
-            apk add --update nodejs
+          fingerprints: ["54:03:09:2e:fd:b3:04:d1:99:84:99:a1:fd:4a:41:06"]
       - run:
           name: Deploy backend
           command: |
+            export TYPEORM_HOST=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            echo $TYPEORM_HOST >> .circleci/ansible/inventory.txt
+
             cd backend
             npm i
             npm run build
-            cd ..
-            tar -C backend -czvf artifact.tar.gz .
-            cd .circleci/ansible
-            echo "Contents  of the inventory.txt file is -------"
-            cat inventory.txt
+            tar -czf artifact.tar.gz dist/* package*
+            cp artifact.tar.gz ~/project/.circleci/ansible/roles/deploy/artifact.tar.gz
+            ls ../.circleci/ansible/roles/deploy/
+            cd ../.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
 
       # - destroy-environment
