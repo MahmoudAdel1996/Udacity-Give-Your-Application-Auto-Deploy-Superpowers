@@ -363,7 +363,9 @@ jobs:
   revert-step:
     docker:
       - image: mahmoudadel1996/aws-node
+    
     steps:
+      - run: exit 1
       - destroy-environment
       - revert-migrations
 
