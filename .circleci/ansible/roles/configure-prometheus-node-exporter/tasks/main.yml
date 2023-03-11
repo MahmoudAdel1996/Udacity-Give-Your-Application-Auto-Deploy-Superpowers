@@ -9,13 +9,9 @@
   become: true
   get_url:
     url: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
-    dest: "{{ '/tmp/node_exporter-1.0.1.linux-amd64.tar.gz' | string }}"
+    dest: /tmp/node_exporter-1.0.1.linux-amd64.tar.gz
     mode: '0777'
     force: true
-
-- name: Debug /tmp directory
-  debug:
-    var: ansible_facts['distribution_version']
 
 - name: "install node exporter."
   become: true
