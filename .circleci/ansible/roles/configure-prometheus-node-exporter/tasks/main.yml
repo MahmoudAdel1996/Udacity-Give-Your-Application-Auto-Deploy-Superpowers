@@ -17,12 +17,13 @@
   become: true
   unarchive:
     src: /tmp/node_exporter-1.0.1.linux-amd64.tar.gz
-    dest: /tmp/extract/
+    dest: /tmp
+    creates: "/tmp/node_exporter-1.0.1.linux-amd64/node_exporter"
 
 - name: "move binary to /usr/local/bin."
   become: true
   copy:
-    src: /tmp/extract/node_exporter-1.0.1.linux-amd64/node_exporter
+    src: /tmp/node_exporter-1.0.1.linux-amd64/node_exporter
     dest: /usr/local/bin/node_exporter
     mode: '0777'
 
