@@ -162,8 +162,8 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
-            --stack-name "udapeople-backend-20134f5" \
-            --parameter-overrides ID="20134f5"  \
+            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
             --tags project=udapeople
       
       - run:
@@ -172,8 +172,8 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
-              --stack-name "udapeople-frontend-20134f5" \
-              --parameter-overrides ID="20134f5" 
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
       
       - run:
           name: Add back-end ip to ansible inventory
@@ -185,7 +185,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
 
-      # - destroy-environment
+      - destroy-environment
 
 
   configure-infrastructure:
@@ -205,7 +205,7 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml -vv
 
-      # - destroy-environment
+      - destroy-environment
 
   run-migrations:
     docker:
@@ -253,11 +253,11 @@ jobs:
             cd frontend
             npm install
             npm run build
-            tar -czvf artifact-20134f5.tar.gz dist
-            aws s3 cp dist s3://udapeople-20134f5 --recursive
+            tar -czvf artifact-${CIRCLE_WORKFLOW_ID:0:7}.tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       
-      # - revert-migrations
-      # - destroy-environment
+      - revert-migrations
+      - destroy-environment
                     
   deploy-backend:
     docker:
@@ -289,8 +289,8 @@ jobs:
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
 
-      # - revert-migrations
-      # - destroy-environment
+      - revert-migrations
+      - destroy-environment
 
   smoke-test:
     docker:
@@ -345,12 +345,12 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
-              --parameter-overrides WorkflowID="20134f5" \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --stack-name InitialStack
   
-      # - notify_on_failure
-      # - revert-migrations
-      # - destroy-environment
+      - notify_on_failure
+      - revert-migrations
+      - destroy-environment
 
   cleanup:
     docker:
@@ -381,33 +381,33 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     filters:
-      #       branches:
-      #         only: [master]
-      # - configure-infrastructure
-          # requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      - deploy-frontend
-      #     requires: [run-migrations]
-      # - deploy-backend
-      #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [master]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
-          requires: [deploy-frontend]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
 
