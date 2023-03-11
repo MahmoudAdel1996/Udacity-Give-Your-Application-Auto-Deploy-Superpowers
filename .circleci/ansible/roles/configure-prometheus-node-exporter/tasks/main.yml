@@ -1,3 +1,10 @@
+- name: Set /tmp permissions
+  become: true
+  file:
+    path: /tmp
+    state: directory
+    mode: '1777'
+
 - name: "download node exporter."
   become: true
   get_url:
