@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 1s
+  evaluation_interval: 1s
+
+scrape_configs:
+  - job_name: 'node_exporter'
+    ec2_sd_configs:
+      - region: {{AWS_DEFAULT_REGION}}
+        access_key: {{AWS_ACCESS_KEY_ID}}
+        secret_key: {{AWS_SECRET_ACCESS_KEY}}
+        port: 9100

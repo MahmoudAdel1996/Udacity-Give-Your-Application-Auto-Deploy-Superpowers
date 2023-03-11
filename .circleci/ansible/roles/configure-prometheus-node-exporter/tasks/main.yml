@@ -21,6 +21,12 @@
     src: node_exporter.service
     dest: /etc/systemd/system/
 
+- name: "add prometheus configuration."
+  become: true
+  copy:
+    src: prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+
 - name: "enable node_exporter service"
   become: true
   systemd:
