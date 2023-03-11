@@ -178,14 +178,15 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> .circleci/ansible/inventory.txt
+            aws ec2 describe-instances --region us-east-1 --filters 'Name=tag:project,Values=udapeople' --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> .circleci/ansible/inventory.txt
 
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
+            - project/.circleci/ansible/inventory2.txt
 
-      - destroy-environment
+      # - destroy-environment
 
 
   configure-infrastructure:
@@ -198,14 +199,22 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Configure server
+          name: Configure backend server
           command: |
             cd .circleci/ansible
-            aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory.txt
+            aws ec2 describe-instances --region us-east-1 --filters 'Name=tag:project,Values=udapeople' --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory.txt
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml -vv
+
+      - run:
+          name: Configure prometheus node exporter
+          command: |
+            cd .circleci/ansible
+            aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory2.txt
+            cat inventory2.txt
+            ansible-playbook -i inventory2.txt configure-prometheus-node-exporter.yml -vv
       
-      - destroy-environment
+      # - destroy-environment
 
   run-migrations:
     docker:
@@ -269,7 +278,7 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            export TYPEORM_HOST=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export TYPEORM_HOST=$(aws ec2 describe-instances --region us-east-1 --filters 'Name=tag:project,Values=udapeople' --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             echo $TYPEORM_HOST >> .circleci/ansible/inventory.txt
 
             cd backend
@@ -289,8 +298,8 @@ jobs:
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
 
-      - revert-migrations
-      - destroy-environment
+      # - revert-migrations
+      # - destroy-environment
 
   smoke-test:
     docker:
@@ -300,7 +309,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1 --filters 'Name=tag:project,Values=udapeople' --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
@@ -391,18 +400,18 @@ workflows:
       #     requires: [build-backend]
       # - scan-frontend:
       #     requires: [build-frontend]
-      # - deploy-infrastructure:
+      # - deploy-infrastructure
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       #     filters:
       #       branches:
       #         only: [master]
-      - configure-infrastructure
+      # - configure-infrastructure
       #     requires: [deploy-infrastructure]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
-      # - deploy-backend:
+      - deploy-backend
       #     requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
