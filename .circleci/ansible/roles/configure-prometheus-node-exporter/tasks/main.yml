@@ -13,6 +13,10 @@
     mode: '0777'
     force: true
 
+- name: Debug /tmp directory
+  debug:
+    var: ansible_facts['distribution_version']
+
 - name: "install node exporter."
   become: true
   unarchive:
