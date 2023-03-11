@@ -1,49 +1,11 @@
 ---
-- name: Set fact to determine if node_exporter should be installed
-  set_fact:
-    node_exporter_should_install: false
-
-- name: See if node_exporter exists
-  stat:
-    path: "{{ node_exporter_dest }}/{{ node_exporter_exe }}"
-  register: node_exporter_exists
-
-- name: Install node_exporter if it does not exist
-  set_fact:
-    node_exporter_should_install: true
-  when: not node_exporter_exists.stat.exists
-
-- name: Get node_exporter version
-  shell: |
-    set -o pipefail
-    {{ node_exporter_dest }}/{{ node_exporter_exe }} --version 2>&1 |
-    head -1 |
-    awk '{print $3}'
-  args:
-    executable: "/bin/bash"
-  changed_when: false
-  register: node_exporter_installed_version
-  when: node_exporter_exists.stat.exists
-
-- name: Install node_exporter if the version does not match
-  set_fact:
-    node_exporter_should_install: true
-  when: >
-    node_exporter_exists.stat.exists and
-    node_exporter_installed_version.stdout != node_exporter_version
-
 - name: Fetch node_exporter binary
   get_url:
-    url: "https://github.com/prometheus/node_exporter/releases/download/\
-      v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.\
-      {{ ansible_system | lower }}-{{ node_exporter_binary_arch }}.tar.gz"
+    url: "https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz"
     dest: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
     mode: "0644"
-  register: node_exporter_fetch_binary_task
-  until: node_exporter_fetch_binary_task is succeeded
   retries: 5
   delay: 2
-  when: node_exporter_should_install
 
 - name: Unpack node_exporter binary
   become: true
@@ -52,14 +14,12 @@
     dest: "/tmp"
     remote_src: true
     mode: "0755"
-  when: node_exporter_should_install
 
 - name: "add node exporter configuration."
   become: true
   copy:
     src: node_exporter.service
     dest: /etc/systemd/system/
-  when: node_exporter_should_install
 
 - name: "enable node_exporter service"
   become: true
@@ -68,4 +28,3 @@
     daemon_reload: yes
     name: node_exporter
     enabled: yes
-  when: node_exporter_should_install
