@@ -162,8 +162,8 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
-            --stack-name "udapeople-backend-cf81c46" \
-            --parameter-overrides ID="cf81c46"  \
+            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
             --tags project=udapeople
       
       - run:
@@ -172,8 +172,8 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
-              --stack-name "udapeople-frontend-cf81c46" \
-              --parameter-overrides ID="cf81c46" 
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
       
       - run:
           name: Add back-end ip to ansible inventory
@@ -253,8 +253,8 @@ jobs:
             cd frontend
             npm install
             npm run build
-            tar -czvf artifact-cf81c46.tar.gz dist
-            aws s3 cp dist s3://udapeople-cf81c46 --recursive
+            tar -czvf artifact-${CIRCLE_WORKFLOW_ID:0:7}.tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       
       - revert-migrations
       - destroy-environment
