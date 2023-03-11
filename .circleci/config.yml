@@ -184,7 +184,6 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-            - project/.circleci/ansible/inventory2.txt
 
       # - destroy-environment
 
@@ -206,14 +205,6 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml -vv
 
-      - run:
-          name: Configure prometheus node exporter
-          command: |
-            cd .circleci/ansible
-            aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory2.txt
-            cat inventory2.txt
-            ansible-playbook -i inventory2.txt configure-prometheus-node-exporter.yml -vv
-      
       # - destroy-environment
 
   run-migrations:
