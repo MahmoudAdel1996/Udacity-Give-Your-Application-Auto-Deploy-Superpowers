@@ -215,7 +215,7 @@ jobs:
       - run:
           name: Run migrations
           command: |
-            export TYPEORM_HOST=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export TYPEORM_HOST=$(aws ec2 describe-instances --region us-east-1 --filters 'Name=tag:project,Values=udapeople' --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             
             cd backend
             npm install
@@ -242,7 +242,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1 --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export BACKEND_IP=$(aws ec2 describe-instances --region us-east-1 --filters 'Name=tag:project,Values=udapeople' --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -253,11 +253,11 @@ jobs:
             cd frontend
             npm install
             npm run build
-            tar -czvf artifact-${CIRCLE_WORKFLOW_ID:0:7}.tar.gz dist
-            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            tar -czvf artifact-20134f5.tar.gz dist
+            aws s3 cp dist s3://udapeople-20134f5 --recursive
       
-      - revert-migrations
-      - destroy-environment
+      # - revert-migrations
+      # - destroy-environment
                     
   deploy-backend:
     docker:
@@ -345,12 +345,12 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides WorkflowID="20134f5" \
               --stack-name InitialStack
   
-      - notify_on_failure
-      - revert-migrations
-      - destroy-environment
+      # - notify_on_failure
+      # - revert-migrations
+      # - destroy-environment
 
   cleanup:
     docker:
@@ -400,14 +400,14 @@ workflows:
           # requires: [deploy-infrastructure]
       # - run-migrations:
       #     requires: [configure-infrastructure]
-      # - deploy-frontend:
+      - deploy-frontend
       #     requires: [run-migrations]
-      - deploy-backend
+      # - deploy-backend
       #     requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [deploy-frontend]
       # - cleanup:
       #     requires: [cloudfront-update]
 
