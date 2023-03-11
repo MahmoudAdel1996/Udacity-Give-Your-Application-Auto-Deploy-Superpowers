@@ -10,15 +10,9 @@
   get_url:
     url: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
     dest: /tmp/node_exporter-1.0.1.linux-amd64.tar.gz
-    mode: '0777'
+    mode: '1777'
     force: true
 
-- name: Copy node_exporter archive to remote server
-  copy:
-    src: /tmp/node_exporter-1.0.1.linux-amd64.tar.gz
-    dest: /tmp/
-    mode: '0644'
-    
 - name: "install node exporter."
   become: true
   unarchive:
